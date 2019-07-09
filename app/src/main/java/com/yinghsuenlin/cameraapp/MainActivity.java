@@ -32,22 +32,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button mSharePicButton;
     private Button mShareEmailButton;
 
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoUri = Uri.fromFile(image);
-        return image;
-    }
-
     static final int REQUEST_TAKE_PHOTO = 1;
 
     private void dispatchTakePictureIntent() {
@@ -71,6 +55,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoUri = Uri.fromFile(image);
+        return image;
     }
 
     private void dispatchSharePicture()
@@ -108,6 +108,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void setPic() {
+        // Get the dimensions of the View
+        int targetW = mImageView.getWidth();
+        int targetH = mImageView.getHeight();
+
+        // Get the dimensions of the bitmap
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(String.valueOf(mCurrentPhotoUri), bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+
+        // Determine how much to scale down the image
+        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+
+        // Decode the image file into a Bitmap sized to fill the View
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
+
+        Bitmap bitmap = BitmapFactory.decodeFile(String.valueOf(mCurrentPhotoUri), bmOptions);
+        mImageView.setImageBitmap(bitmap);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -119,6 +143,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mShareEmailButton = (Button) findViewById(R.id.share_email);
 
         mCameraButton.setOnClickListener(this);
+        mSharePicButton.setOnClickListener(this);
+        mShareEmailButton.setOnClickListener(this);
     }
 
     @Override
@@ -142,6 +168,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             mImageView.setImageURI(mCurrentPhotoUri);
         }
+
     }
 
     private void galleryAddPic() {
@@ -149,7 +176,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mediaScanIntent.setData(mCurrentPhotoUri);
         this.sendBroadcast(mediaScanIntent);
     }
-
-
 
 }
