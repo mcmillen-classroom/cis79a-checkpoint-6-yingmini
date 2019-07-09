@@ -24,6 +24,16 @@
         android:layout_height="wrap_content"
         android:text="@string/take_pic"/>
 
+    <Button
+        android:id="@+id/share_media"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/share_media"/>
 
+    <Button
+        android:id="@+id/share_email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/share_email"/>
 
 </LinearLayout>

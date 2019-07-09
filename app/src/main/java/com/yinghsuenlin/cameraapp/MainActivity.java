@@ -29,6 +29,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView mImageView;
 
     Uri mCurrentPhotoUri;
+    private Button mSharePicButton;
+    private Button mShareEmailButton;
 
     private File createImageFile() throws IOException {
         // Create an image file name
@@ -71,7 +73,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void dispatchSharePicture()
+    {
+        File image = new File(mCurrentPhotoUri.getPath());
+        Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", image);
 
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        shareIntent.putExtra(Intent.EXTRA_STREAM, photoURI);
+        shareIntent.setType("image/jpeg");
+
+        startActivity(Intent.createChooser(shareIntent, getResources().getText(R.string.share_media)));
+    }
+
+    private void dispatchEmailPicture()
+    {
+        File image = new File(mCurrentPhotoUri.getPath());
+        Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", image);
+
+        Intent emailIntent = new Intent();
+        emailIntent.setAction(Intent.ACTION_SENDTO);
+        emailIntent.setData(Uri.parse("mailto:"));
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Check out my pic!");
+        emailIntent.putExtra(Intent.EXTRA_TEXT, "Taken using my CameraApp.");
+        emailIntent.putExtra(Intent.EXTRA_STREAM, photoURI);
+
+        if (emailIntent.resolveActivity(getPackageManager()) != null)
+        {
+            startActivity(emailIntent);
+        }
+        else
+        {
+            Toast.makeText(this, "No email app configured.", Toast.LENGTH_LONG).show();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +115,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mCameraButton = (Button) findViewById(R.id.camera_button);
         mImageView = (ImageView) findViewById(R.id.image_view);
+        mSharePicButton = (Button) findViewById(R.id.share_media);
+        mShareEmailButton = (Button) findViewById(R.id.share_email);
 
         mCameraButton.setOnClickListener(this);
     }
@@ -89,6 +126,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (view.getId() == R.id.camera_button)
         {
             dispatchTakePictureIntent();
+        }
+        if (view.getId() == R.id.share_media)
+        {
+            dispatchSharePicture();
+        }
+        if (view.getId() == R.id.share_email)
+        {
+            dispatchEmailPicture();
         }
     }
 
