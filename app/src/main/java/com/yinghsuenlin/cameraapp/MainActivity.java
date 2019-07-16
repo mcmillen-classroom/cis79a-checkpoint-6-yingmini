@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ImageView mImageView;
 
-    Uri mCurrentPhotoUri;
+    private Uri mCurrentPhotoUri;
     private Button mSharePicButton;
     private Button mShareEmailButton;
 
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         "com.example.android.fileprovider",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
     }
@@ -92,11 +92,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", image);
 
         Intent emailIntent = new Intent();
-        emailIntent.setAction(Intent.ACTION_SENDTO);
+        emailIntent.setAction(Intent.ACTION_SEND);
         emailIntent.setData(Uri.parse("mailto:"));
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Check out my pic!");
         emailIntent.putExtra(Intent.EXTRA_TEXT, "Taken using my CameraApp.");
         emailIntent.putExtra(Intent.EXTRA_STREAM, photoURI);
+        emailIntent.setType("text/plain");
 
         if (emailIntent.resolveActivity(getPackageManager()) != null)
         {
@@ -116,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Get the dimensions of the bitmap
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
         bmOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(String.valueOf(mCurrentPhotoUri), bmOptions);
+        BitmapFactory.decodeFile(mCurrentPhotoUri.getPath(), bmOptions);
         int photoW = bmOptions.outWidth;
         int photoH = bmOptions.outHeight;
 
@@ -128,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bmOptions.inSampleSize = scaleFactor;
         bmOptions.inPurgeable = true;
 
-        Bitmap bitmap = BitmapFactory.decodeFile(String.valueOf(mCurrentPhotoUri), bmOptions);
+        Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoUri.getPath(), bmOptions);
         mImageView.setImageBitmap(bitmap);
     }
 
@@ -165,8 +166,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            mImageView.setImageURI(mCurrentPhotoUri);
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK)
+        {
+            setPic();
         }
 
     }
